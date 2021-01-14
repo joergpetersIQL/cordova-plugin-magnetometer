@@ -153,24 +153,25 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
 
         // Get magnetic field sensor from sensor manager
         @SuppressWarnings("deprecation")
-        aSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        if (aSensor != null) {
-            sensorManager.registerListener(this, aSensor, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-        }
-        mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        if (mSensor != null) {
-            sensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-        }
-        //List<Sensor> mlist = this.sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
-        //List<Sensor> alist = this.sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
-        if (aSensor != null && mSensor != null) {
+        //aSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        //if (aSensor != null) {
+        //    sensorManager.registerListener(this, aSensor, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        //}
+        //mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        //if (mSensor != null) {
+        //    sensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        //}
+        
+        List<Sensor> alist = this.sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        List<Sensor> mlist = this.sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
+        //if (aSensor != null && mSensor != null) {
 
         // If found, then register as listener
-        //if (mlist != null && mlist.size() > 0 && alist != null && alist.size() > 0) {
-            //this.mSensor = mlist.get(0);
-            //this.sensorManager.registerListener(this, this.mSensor, SensorManager.SENSOR_DELAY_NORMAL);
-            //this.aSensor = alist.get(0);
-            //this.sensorManager.registerListener(this, this.aSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        if (alist != null && alist.size() > 0 && mlist != null && mlist.size() > 0) {
+            this.aSensor = alist.get(0);
+            this.sensorManager.registerListener(this, this.aSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            this.mSensor = mlist.get(0);
+            this.sensorManager.registerListener(this, this.mSensor, SensorManager.SENSOR_DELAY_NORMAL);
             this.lastAccessTime = System.currentTimeMillis();
             this.setStatus(Magnetometer.STARTING);
         }
