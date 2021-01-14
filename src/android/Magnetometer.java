@@ -219,17 +219,26 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         if (event == null) {
             return;
         }
+
+        final float alpha = 0.97f;
+
         this.timeStamp = System.currentTimeMillis();
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.length);
-            this.ax = event.values[0];
-            this.ay = event.values[1];
-            this.az = event.values[2];
+            accelerometerReading[0] = alpha * accelerometerReading[0] + (1 - alpha) * event.values[0];
+            accelerometerReading[1] = alpha * accelerometerReading[1] + (1 - alpha) * event.values[1];
+            accelerometerReading[2] = alpha * accelerometerReading[2] + (1 - alpha) * event.values[2];
+            this.ax = accelerometerReading[0];
+            this.ay = accelerometerReading[1];
+            this.az = accelerometerReading[2];
         } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
             System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.length);
-            this.mx = event.values[0];
-            this.my = event.values[1];
-            this.mz = event.values[2];
+            magnetometerReading[0] = alpha * magnetometerReading[0] + (1 - alpha) * event.values[0];
+            magnetometerReading[1] = alpha * magnetometerReading[1] + (1 - alpha) * event.values[1];
+            magnetometerReading[2] = alpha * magnetometerReading[2] + (1 - alpha) * event.values[2];
+            this.mx = magnetometerReading[0];
+            this.my = magnetometerReading[1];
+            this.mz = magnetometerReading[2];
         }
     
         updateOrientationAngles();
