@@ -50,7 +50,17 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
     float x;                            // magnetometer x value
     float y;                            // magnetometer y value
     float z;                            // magnetometer z value
+    float degrees;                      // magnetometer degrees value (magnetic heading)
     float magnitude;                    // magnetometer calculated magnitude
+    float accelerometerReading[];
+    accelerometerReading = new float[3];
+    float magnetometerReading[];
+    magnetometerReading = new float[3];
+    float rotationMatrix[];
+    rotationMatrix = new float(9);
+    float orientationAngles[];
+    orientationAngles = new float(3);
+
     long timeStamp;                     // time of most recent value
     long lastAccessTime;                // time the value was last retrieved
 
@@ -64,6 +74,7 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         this.x = 0;
         this.y = 0;
         this.z = 0;
+        this.degrees = 360;
         this.timeStamp = 0;
         this.watchContexts = new ArrayList<CallbackContext>();
         this.setStatus(Magnetometer.STOPPED);
@@ -139,12 +150,15 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
 
         // Get magnetic field sensor from sensor manager
         @SuppressWarnings("deprecation")
-        List<Sensor> list = this.sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
+        List<Sensor> mlist = this.sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
+        List<Sensor> alist = this.sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
 
         // If found, then register as listener
-        if (list != null && list.size() > 0) {
-            this.mSensor = list.get(0);
+        if (mlist != null && mlist.size() > 0 && alist != null && alist.size() > 0) {
+            this.mSensor = mlist.get(0);
             this.sensorManager.registerListener(this, this.mSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            this.aSensor = alist.get(0);
+            this.sensorManager.registerListener(this, this.aSensor, SensorManager.SENSOR_DELAY_NORMAL);
             this.lastAccessTime = System.currentTimeMillis();
             this.setStatus(Magnetometer.STARTING);
         }
@@ -179,7 +193,6 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         }
     }
 
-
     //--------------------------------------------------------------------------
     // SensorEventListener Interface
     //--------------------------------------------------------------------------
@@ -190,17 +203,29 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
      * @param event
      */
     public void onSensorChanged(SensorEvent event) {
-
-        // Save reading
-        this.timeStamp = System.currentTimeMillis();
-        this.x = event.values[0];
-        this.y = event.values[1];
-        this.z = event.values[2];
+        if (event == null) {
+            return;
+        }
+    
+        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.size);
+        } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+            System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.size);
+            // Save reading
+            this.timeStamp = System.currentTimeMillis();
+            this.x = event.values[0];
+            this.y = event.values[1];
+            this.z = event.values[2];
+        }    
 
         // If heading hasn't been read for TIMEOUT time, then turn off compass sensor to save power
         if ((this.timeStamp - this.lastAccessTime) > this.TIMEOUT) {
             this.stop();
         }
+        
+        SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
+        val orientation = SensorManager.getOrientation(rotationMatrix, orientationAngles);
+        this.degrees = (Math.toDegrees(orientation.get(0).toDouble()) + 360.0) % 360.0;
     }
 
     /**
@@ -244,6 +269,7 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         obj.put("x", this.x);
         obj.put("y", this.y);
         obj.put("z", this.z);
+        obj.put("degrees", this.degrees);
 
         double x2 = Float.valueOf(this.x * this.x).doubleValue();
         double y2 = Float.valueOf(this.y * this.y).doubleValue();
