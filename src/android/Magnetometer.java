@@ -218,14 +218,14 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
             this.z = event.values[2];
         }    
 
+        SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
+        this.degrees = (Math.toDegrees(SensorManager.getOrientation(rotationMatrix, orientationAngles).get(0).toDouble()) + 360.0) % 360.0;
+
         // If heading hasn't been read for TIMEOUT time, then turn off compass sensor to save power
         if ((this.timeStamp - this.lastAccessTime) > this.TIMEOUT) {
             this.stop();
         }
         
-        SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
-        val orientation = SensorManager.getOrientation(rotationMatrix, orientationAngles);
-        this.degrees = (Math.toDegrees(orientation.get(0).toDouble()) + 360.0) % 360.0;
     }
 
     /**
