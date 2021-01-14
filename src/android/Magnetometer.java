@@ -64,6 +64,7 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
     long lastAccessTime;                // time the value was last retrieved
 
     private SensorManager sensorManager;// Sensor manager
+    Sensor aSensor;                     // Accelerometer sensor returned by sensor manager
     Sensor mSensor;                     // Magnetic sensor returned by sensor manager
 
     private CallbackContext callbackContext;
@@ -237,7 +238,7 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         // "rotationMatrix" now has up-to-date information.
         SensorManager.getOrientation(rotationMatrix, orientationAngles);
         // "orientationAngles" now has up-to-date information.
-        this.degrees = (Math.toDegrees(orientationAngles[0].toDouble()) + 360.0) % 360.0;
+        this.degrees = (Math.toDegrees(orientationAngles.get(0).toDouble()) + 360.0) % 360.0;
     }
 
     /**
