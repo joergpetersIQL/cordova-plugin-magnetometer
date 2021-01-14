@@ -246,7 +246,8 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         // "rotationMatrix" now has up-to-date information.
         SensorManager.getOrientation(rotationMatrix, orientationAngles);
         // "orientationAngles" now has up-to-date information.
-        this.degrees = (Math.toDegrees(orientationAngles[0]) + 360) % 360;
+        this.degrees = ((float) Math.toDegrees(orientationAngles[0]) + 360) % 360;    
+    
     }
 
     /**
