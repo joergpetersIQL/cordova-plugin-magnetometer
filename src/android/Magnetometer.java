@@ -70,9 +70,12 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
     List<CallbackContext> watchContexts;
 
     public Magnetometer() {
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
+        this.ax = 0;
+        this.ay = 0;
+        this.az = 0;
+        this.mx = 0;
+        this.my = 0;
+        this.mz = 0;
         this.degrees = 0;
         this.timeStamp = 0;
         this.watchContexts = new ArrayList<CallbackContext>();
