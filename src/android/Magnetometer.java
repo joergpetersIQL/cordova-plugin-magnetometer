@@ -153,15 +153,24 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
 
         // Get magnetic field sensor from sensor manager
         @SuppressWarnings("deprecation")
-        List<Sensor> mlist = this.sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
-        List<Sensor> alist = this.sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        this.aSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (this.aSensor != null) {
+            sensorManager.registerListener(this, this.aSensor, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+        this.mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        if (this.mSensor != null) {
+            sensorManager.registerListener(this, this.mSensor, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+        //List<Sensor> mlist = this.sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
+        //List<Sensor> alist = this.sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        if (this.aSensor != null && this.mSensor != null) {
 
         // If found, then register as listener
-        if (mlist != null && mlist.size() > 0 && alist != null && alist.size() > 0) {
-            this.mSensor = mlist.get(0);
-            this.sensorManager.registerListener(this, this.mSensor, SensorManager.SENSOR_DELAY_NORMAL);
-            this.aSensor = alist.get(0);
-            this.sensorManager.registerListener(this, this.aSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        //if (mlist != null && mlist.size() > 0 && alist != null && alist.size() > 0) {
+            //this.mSensor = mlist.get(0);
+            //this.sensorManager.registerListener(this, this.mSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            //this.aSensor = alist.get(0);
+            //this.sensorManager.registerListener(this, this.aSensor, SensorManager.SENSOR_DELAY_NORMAL);
             this.lastAccessTime = System.currentTimeMillis();
             this.setStatus(Magnetometer.STARTING);
         }
@@ -209,21 +218,19 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         if (event == null) {
             return;
         }
-    
-        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+        this.timeStamp = System.currentTimeMillis();
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.length);
             this.ax = event.values[0];
             this.ay = event.values[1];
             this.az = event.values[2];
-        } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+        } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
             System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.length);
-            // Save reading
-            this.timeStamp = System.currentTimeMillis();
             this.mx = event.values[0];
             this.my = event.values[1];
             this.mz = event.values[2];
-        }    
-        
+        }
+    
         updateOrientationAngles();
         
         // If heading hasn't been read for TIMEOUT time, then turn off compass sensor to save power
