@@ -47,19 +47,18 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
     public long TIMEOUT = 30000;        // Timeout in msec to shut off listener
 
     int status;                         // status of listener
-    float x;                            // magnetometer x value
-    float y;                            // magnetometer y value
-    float z;                            // magnetometer z value
+    float ax;                            // accelerometer x value
+    float ay;                            // accelerometer y value
+    float az;                            // accelerometer z value
+    float mx;                            // magnetometer x value
+    float my;                            // magnetometer y value
+    float mz;                            // magnetometer z value
     float degrees;                      // magnetometer degrees value (magnetic heading)
     float magnitude;                    // magnetometer calculated magnitude
-    float accelerometerReading[];
-    accelerometerReading = new float[3];
-    float magnetometerReading[];
-    magnetometerReading = new float[3];
-    float rotationMatrix[];
-    rotationMatrix = new float(9);
-    float orientationAngles[];
-    orientationAngles = new float(3);
+    private final float[] accelerometerReading = new float[3];
+    private final float[] magnetometerReading = new float[3];
+    private final float[] rotationMatrix = new float[9];
+    private final float[] orientationAngles = new float[3];
 
     long timeStamp;                     // time of most recent value
     long lastAccessTime;                // time the value was last retrieved
@@ -74,7 +73,7 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         this.x = 0;
         this.y = 0;
         this.z = 0;
-        this.degrees = 360;
+        this.degrees = 0;
         this.timeStamp = 0;
         this.watchContexts = new ArrayList<CallbackContext>();
         this.setStatus(Magnetometer.STOPPED);
@@ -208,24 +207,34 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         }
     
         if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.size);
+            System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.length);
+            this.ax = event.values[0];
+            this.ay = event.values[1];
+            this.az = event.values[2];
         } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
-            System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.size);
+            System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.length);
             // Save reading
             this.timeStamp = System.currentTimeMillis();
-            this.x = event.values[0];
-            this.y = event.values[1];
-            this.z = event.values[2];
+            this.mx = event.values[0];
+            this.my = event.values[1];
+            this.mz = event.values[2];
         }    
-
-        SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
-        this.degrees = (Math.toDegrees(SensorManager.getOrientation(rotationMatrix, orientationAngles).get(0).toDouble()) + 360.0) % 360.0;
-
+        
+        updateOrientationAngles();
+        
         // If heading hasn't been read for TIMEOUT time, then turn off compass sensor to save power
         if ((this.timeStamp - this.lastAccessTime) > this.TIMEOUT) {
             this.stop();
         }
         
+    }
+    public void updateOrientationAngles() {
+        // Update rotation matrix, which is needed to update orientation angles.
+        SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
+        // "rotationMatrix" now has up-to-date information.
+        SensorManager.getOrientation(rotationMatrix, orientationAngles);
+        // "orientationAngles" now has up-to-date information.
+        this.degrees = (Math.toDegrees(orientationAngles[0].toDouble()) + 360.0) % 360.0;
     }
 
     /**
