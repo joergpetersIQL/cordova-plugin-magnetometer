@@ -221,42 +221,39 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
         }
 
         final float alpha = 0.97f;
-
-        this.timeStamp = System.currentTimeMillis();
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.length);
-            accelerometerReading[0] = alpha * accelerometerReading[0] + (1 - alpha) * event.values[0];
-            accelerometerReading[1] = alpha * accelerometerReading[1] + (1 - alpha) * event.values[1];
-            accelerometerReading[2] = alpha * accelerometerReading[2] + (1 - alpha) * event.values[2];
-            this.ax = accelerometerReading[0];
-            this.ay = accelerometerReading[1];
-            this.az = accelerometerReading[2];
-        } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.length);
-            magnetometerReading[0] = alpha * magnetometerReading[0] + (1 - alpha) * event.values[0];
-            magnetometerReading[1] = alpha * magnetometerReading[1] + (1 - alpha) * event.values[1];
-            magnetometerReading[2] = alpha * magnetometerReading[2] + (1 - alpha) * event.values[2];
-            this.mx = magnetometerReading[0];
-            this.my = magnetometerReading[1];
-            this.mz = magnetometerReading[2];
-        }
+        synchronized (this) {
+            this.timeStamp = System.currentTimeMillis();
+            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.length);
+                accelerometerReading[0] = alpha * accelerometerReading[0] + (1 - alpha) * event.values[0];
+                accelerometerReading[1] = alpha * accelerometerReading[1] + (1 - alpha) * event.values[1];
+                accelerometerReading[2] = alpha * accelerometerReading[2] + (1 - alpha) * event.values[2];
+                this.ax = accelerometerReading[0];
+                this.ay = accelerometerReading[1];
+                this.az = accelerometerReading[2];
+            } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+                System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.length);
+                magnetometerReading[0] = alpha * magnetometerReading[0] + (1 - alpha) * event.values[0];
+                magnetometerReading[1] = alpha * magnetometerReading[1] + (1 - alpha) * event.values[1];
+                magnetometerReading[2] = alpha * magnetometerReading[2] + (1 - alpha) * event.values[2];
+                this.mx = magnetometerReading[0];
+                this.my = magnetometerReading[1];
+                this.mz = magnetometerReading[2];
+            }
     
-        updateOrientationAngles();
-        
+            boolean success = SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
+            if (success) {
+                SensorManager.getOrientation(rotationMatrix, orientationAngles);
+                this.degrees = ((float) Math.toDegrees(orientationAngles[0]) + 360) % 360;
+            } else {
+                this.degrees = 360;
+            }    
+        }
         // If heading hasn't been read for TIMEOUT time, then turn off compass sensor to save power
         if ((this.timeStamp - this.lastAccessTime) > this.TIMEOUT) {
             this.stop();
         }
         
-    }
-    public void updateOrientationAngles() {
-        // Update rotation matrix, which is needed to update orientation angles.
-        SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
-        // "rotationMatrix" now has up-to-date information.
-        SensorManager.getOrientation(rotationMatrix, orientationAngles);
-        // "orientationAngles" now has up-to-date information.
-        this.degrees = ((float) Math.toDegrees(orientationAngles[0]) + 360) % 360;    
-    
     }
 
     /**
