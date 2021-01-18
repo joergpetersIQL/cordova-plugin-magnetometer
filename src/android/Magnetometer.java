@@ -228,24 +228,30 @@ public class Magnetometer extends CordovaPlugin implements SensorEventListener  
                 accelerometerReading[0] = alpha * accelerometerReading[0] + (1 - alpha) * event.values[0];
                 accelerometerReading[1] = alpha * accelerometerReading[1] + (1 - alpha) * event.values[1];
                 accelerometerReading[2] = alpha * accelerometerReading[2] + (1 - alpha) * event.values[2];
-                this.ax = accelerometerReading[0];
-                this.ay = accelerometerReading[1];
-                this.az = accelerometerReading[2];
             } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
                 System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.length);
                 magnetometerReading[0] = alpha * magnetometerReading[0] + (1 - alpha) * event.values[0];
                 magnetometerReading[1] = alpha * magnetometerReading[1] + (1 - alpha) * event.values[1];
                 magnetometerReading[2] = alpha * magnetometerReading[2] + (1 - alpha) * event.values[2];
-                this.mx = magnetometerReading[0];
-                this.my = magnetometerReading[1];
-                this.mz = magnetometerReading[2];
             }
     
             boolean success = SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading);
             if (success) {
                 SensorManager.getOrientation(rotationMatrix, orientationAngles);
+                this.ax = accelerometerReading[0];
+                this.ay = accelerometerReading[1];
+                this.az = accelerometerReading[2];
+                this.mx = magnetometerReading[0];
+                this.my = magnetometerReading[1];
+                this.mz = magnetometerReading[2];
                 this.degrees = ((float) Math.toDegrees(orientationAngles[0]) + 360) % 360;
             } else {
+                this.ax = accelerometerReading[0];
+                this.ay = accelerometerReading[1];
+                this.az = accelerometerReading[2];
+                this.mx = magnetometerReading[0];
+                this.my = magnetometerReading[1];
+                this.mz = magnetometerReading[2];
                 this.degrees = 360;
             }    
         }
