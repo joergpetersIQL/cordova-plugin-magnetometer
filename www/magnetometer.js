@@ -9,8 +9,11 @@ var Magnetometer = function(){
 
 Magnetometer.prototype = {
   getReading: function(successCallback, errorCallback){
-    // TODO: Instead of single reading, this currently adds a watch on iOS
-    cordova.exec(successCallback, errorCallback, "Magnetometer", "getReading", []);
+    var magnetometer = this,
+    if (cordova.platformId === 'android') {
+        magnetometer.getReading(successCallback, errorCallback);
+    } 
+    else cordova.exec(successCallback, errorCallback, "Magnetometer", "getReading", []);
   },
   watchReadings: function(successCallback, errorCallback){
     // Start watch timer to get magnitude
